@@ -90,18 +90,6 @@ assets/
 
 The conventions are compatible with Cubit, GetIt, Dio, and EasyLocalization, but the scaffold does not install or require these packages. It does not create a runnable Flutter project; use `flutter create` separately when needed.
 
-## الرفع على GitHub / Publishing
-
-أنشئ مستودع GitHub فارغ باسم `tantawi-structure`، ثم نفّذ الأوامر من هذا المجلد فقط. استبدل `YOUR_USERNAME` باسم حسابك:
-
-```bash
-git init -b main
-git add SKILL.md agents/openai.yaml scripts/scaffold.py README.md .gitignore
-git commit -m "Add Tantawi Structure skill"
-git remote add origin https://github.com/YOUR_USERNAME/tantawi-structure.git
-git push -u origin main
-```
-
 ارفع محتويات هذا المجلد فقط؛ لا ترفع مشروع التطبيق المحيط به. لم يتم إنشاء مستودع بعيد أو رفع أي ملفات تلقائيًا.
 
 Upload only this folder's contents, not the surrounding application repository. No remote repository is created by the skill.
