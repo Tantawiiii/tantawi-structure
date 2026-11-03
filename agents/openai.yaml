@@ -1,4 +1,4 @@
 interface:
   display_name: "Tantawi Structure"
-  short_description: "Create a Flutter core/features folder skeleton only"
-  default_prompt: "Use $tantawi-structure to scaffold only the folder structure of this Flutter app."
+  short_description: "Scaffold Flutter folders with standard or clean layouts"
+  default_prompt: "Use $tantawi-structure to scaffold only this Flutter app's folders with the standard layout."

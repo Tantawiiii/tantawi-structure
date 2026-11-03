@@ -1,67 +1,64 @@
 ---
 name: tantawi-structure
-description: Scaffold only the folder structure of a new Flutter app using core and feature-first data/cubit/ui conventions. Use when asked to initialize an app structure, especially in Arabic (جهز استراكشر التطبيق). Does not implement screens, features, or integrations.
+description: Scaffold only Flutter app folders with app/core/features organization, a standard data/presentation layout, or an optional clean domain layer. Use for new app structure requests (جهز استراكشر التطبيق), not screen implementation or existing-app migration.
 ---
 
 # Tantawi Structure
 
-Create the organizational skeleton only. This convention is extracted from a Flutter application using Cubit, GetIt, Dio, named routes, and EasyLocalization; it does not require installing those packages to create folders.
+Create a folder skeleton only. Default to `standard`; use `clean` when the user requests Clean Architecture or a domain layer. Do not infer clean mode simply from app size.
 
-## Scope
+## Before scaffolding
 
-- Inspect the destination and its AGENTS.md and Flutter profile before scaffolding. Preserve explicit project choices. If another skill recommends a different layout, use the user's requested data/cubit/ui layout unless the destination has an explicit conflicting requirement; surface a real conflict before mixing layouts.
-- Default to the current Flutter project. For an empty destination, create the folder skeleton without running `flutter create` unless the user requests a runnable Flutter project.
-- Create directories and `.gitkeep` files only. Do not generate Dart placeholders, screens, sample business features, models, repositories, tests, or package/config changes. Do not replace `main.dart` or any existing file.
-- Do not copy source from the reference application. Never transfer API URLs, credentials, Firebase/Sentry settings, identifiers, branding, fonts, business logic, or platform files.
-- Use only feature names the user requests. Without names, create `features/` empty. Do not add auth, onboarding, dashboard, or splash by assumption.
-- Do not refactor an established project merely because this skill is available.
+Inspect the destination's instructions, Flutter profile, and existing structure. Respect explicit project requirements; surface conflicting requirements rather than mixing conventions. No additional approval is needed for routine scaffolding already requested by the user.
 
-## Layout
+Use only requested feature names, in lowercase snake_case. Without names, leave `features/` empty. Do not invent auth, splash, or example features.
+
+An empty destination is allowed, but do not run `flutter create` unless the user requests a runnable project. Do not refactor an established application. The script rejects requested features with legacy top-level `ui/` or `cubit/` folders; migration is a separate task. It does not detect every possible architectural conflict, so inspect first.
+
+## Layouts
+
+Both layouts create:
 
 ```text
 lib/
-  core/
-    constant/                 # asset paths, text keys, application constants
-    di/                       # dependency registration, e.g. inject.dart
-    enums/
-    extension/
-    models/                   # genuinely shared models
-    network/                  # client, API service, configuration
-    routing/                  # app_routes.dart and app_router.dart when implemented
-    services/                 # shared infrastructure services
-    shared/
-      bottom_sheets/
-      screens/
-      utils/
-      widgets/
-    theme/                    # theme and tokens when implemented
-    utils/
+  app/{di,routing,theme}/
+  core/{network,errors,storage,widgets}/
   features/
     <requested_feature>/
-      data/
-        models/
-      cubit/
-      ui/
-        widgets/
-assets/
-  pngs/
-  svgs/
-  gifs/
-  fonts/
-  translations/
-  sound/
+      data/{models,datasources,repositories}/
+      presentation/{cubit,screens,widgets}/
+assets/{pngs,svgs,gifs,fonts,translations,sound}/
 ```
 
-Future feature implementation places repositories directly in `data/`, Cubit and state files in `cubit/`, and screens in `ui/`. This is the reference project's lightweight convention; do not silently convert it to domain/data/presentation Clean Architecture. Keep feature-specific helpers near their feature and reserve core for shared code. A new asset directory does not imply a pubspec declaration or a real asset exists.
+Braces describe separate directories, not literal names.
+
+`clean` additionally creates, inside each requested feature:
+
+```text
+domain/
+  entities/
+  repositories/
+  usecases/
+```
+
+## Intended boundaries for future implementation
+
+- `app/`: application composition, DI registration, routing, theme and tokens.
+- `core/`: genuinely shared infrastructure and widgets. Keep feature-specific helpers in their feature; avoid general-purpose utils/services dumping grounds.
+- `presentation/`: screens, widgets, Cubits, and state. Widgets talk to Cubits; Cubits depend on repositories, never directly on HTTP clients or data sources.
+- `data/`: serialization models, remote/local data sources, and repository implementations.
+- Standard: repository contracts and implementations can live in `data/repositories/`; presentation depends on repository contracts. Business orchestration can remain in the Cubit until a domain layer is warranted.
+- Clean: repository interfaces belong in `domain/repositories/`, implementations in `data/repositories/`. Domain is pure Dart, imports neither Flutter nor data/presentation, and contains business entities and use cases. Presentation and data depend on domain. Add actual use cases only for meaningful business rules or orchestration.
+
+These are instructions for future code, not code generated by this skill. Cubit is the default folder convention, not an installed dependency. If a project explicitly uses a different state approach, adapt the presentation subfolder deliberately; the script does not expose a state selection flag.
 
 ## Execution
 
-Use the bundled script, with an absolute destination and optional repeated feature arguments:
-
 ```bash
-python3 <skill-directory>/scripts/scaffold.py /absolute/path/to/app --feature login --feature profile
+python3 <skill-directory>/scripts/scaffold.py /physical/absolute/path/to/app --feature profile
+python3 <skill-directory>/scripts/scaffold.py /physical/absolute/path/to/app --layout clean --feature profile
 ```
 
-Without `--feature`, it creates no business features. The script adds missing folders, preserves existing content, and refuses symlink paths. If the user asks for a different layout, adapt the folder list rather than forcing this template.
+Use `--dry-run` to preview without writes. The script preserves existing content, adds missing folders and `.gitkeep` files, and rejects symlink paths. Repeated runs do not remove previous folders. Choosing another mode adds folders; it does not migrate code or enforce dependencies.
 
-Verify the resulting directory tree and report the destination, created structure, and any skipped existing content. Stop after scaffolding; implementation is a separate request.
+Create no Dart files, dependencies, tests, project profiles, or configuration in the destination. Do not overwrite main.dart or pubspec.yaml, register assets, copy branding/secrets/integrations, or implement features. Verify the created tree and report the selected mode, destination, and preserved existing content. Stop after scaffolding.

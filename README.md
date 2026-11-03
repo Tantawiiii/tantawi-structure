@@ -6,7 +6,7 @@
 
 A reusable Codex skill that scaffolds a feature-first folder structure — ready for you to build on.
 
-**Flutter folders · Feature-first organization · Python standard library only**
+**Standard & Clean layouts · Feature-first organization · Python standard library only**
 
 [Get started](#installation) · [Usage](#usage) · [Folder map](#folder-map) · [FAQ](#faq)
 
@@ -22,7 +22,7 @@ Starting a Flutter project often means recreating the same folders. Tantawi Stru
 $tantawi-structure Set up only the folder structure for this Flutter app.
 ```
 
-It creates shared folders under `core/`, a home for your features under `features/`, and asset directories. Request specific features to give each one its own `data/`, `cubit/`, and `ui/` folders.
+It separates application composition in `app/`, shared infrastructure in `core/`, and feature code in `features/`. Each requested feature gets `data/` and `presentation/`. Choose `clean` to add a pure Dart `domain/` layer.
 
 **The output is a folder skeleton.** You choose the packages, write the code, and build the product.
 
@@ -30,30 +30,37 @@ It creates shared folders under `core/`, a home for your features under `feature
 
 ```mermaid
 flowchart TD
-    A[Your Flutter project] --> B[Tantawi Structure]
-    B --> C[lib/core]
-    B --> D[lib/features]
-    B --> E[assets]
-    C --> F[Shared infrastructure and UI folders]
-    D --> G[Only the features you request]
-    G --> H[data/models]
-    G --> I[cubit]
-    G --> J[ui/widgets]
-    E --> K[Images, fonts, translations and sound]
-
-    style B fill:#155e75,color:#ffffff,stroke:#0891b2
-    style C fill:#ecfeff,color:#164e63,stroke:#06b6d4
-    style D fill:#f0fdf4,color:#14532d,stroke:#22c55e
-    style E fill:#fff7ed,color:#7c2d12,stroke:#f97316
+    A[Tantawi Structure] --> B[app: DI, routing, theme]
+    A --> C[core: network, errors, storage, widgets]
+    A --> D[Requested features]
+    A --> E[Asset directories]
+    D --> F[data: models, datasources, repositories]
+    D --> G[presentation: cubit, screens, widgets]
+    D -. clean mode only .-> H[domain: entities, contracts, use cases]
+    style A fill:#155e75,color:#ffffff,stroke:#0891b2
+    style F fill:#ecfeff,color:#164e63,stroke:#06b6d4
+    style G fill:#f0fdf4,color:#14532d,stroke:#22c55e
+    style H fill:#fff7ed,color:#7c2d12,stroke:#f97316
 ```
 
-*This is a folder map, not a runtime dependency diagram.*
+*This describes folder organization, not runtime dependencies.*
+
+## Choose your layout
+
+| Layout | Feature folders | When to choose it |
+| --- | --- | --- |
+| `standard` (default) | `data/` + `presentation/` | Start with a lightweight separation of data and UI. |
+| `clean` | `data/` + `presentation/` + `domain/` | Explicit business rules, domain entities, and repository contracts need their own layer. |
+
+Both layouts create folders only. Mode selection does not generate or validate architecture in your Dart code.
 
 ## What you get
 
 | Capability | Behavior |
 | --- | --- |
-| Shared foundation | Creates folders for networking, dependency registration, routing, themes, services, and shared UI. |
+| Shared foundation | Separates app composition from shared networking, errors, storage, and widgets. |
+| Layout selection | Defaults to `standard`; supports `--layout clean`. |
+| Preview | `--dry-run` lists target folders without writing files. |
 | Feature scaffolding | Adds only the feature names you request. |
 | Asset organization | Creates image, SVG, animation, font, translation, and sound directories. |
 | Existing content | Preserves existing files and adds missing directories. |
@@ -137,11 +144,22 @@ Each requested feature gets:
 ```text
 features/login/
 ├── data/
-│   └── models/
-├── cubit/
-└── ui/
+│   ├── models/
+│   ├── datasources/
+│   └── repositories/
+└── presentation/
+    ├── cubit/
+    ├── screens/
     └── widgets/
 ```
+
+### Request Clean Architecture folders
+
+```text
+$tantawi-structure Use the clean layout with login and profile features. Create folders only.
+```
+
+This adds `domain/entities/`, `domain/repositories/`, and `domain/usecases/` to each requested feature.
 
 ### Run the script directly
 
@@ -155,6 +173,14 @@ python3 scripts/scaffold.py /absolute/path/to/my_app
 python3 scripts/scaffold.py /absolute/path/to/my_app \
   --feature login \
   --feature user_profile
+
+# Preview the clean layout without writing files
+python3 scripts/scaffold.py /absolute/path/to/my_app \
+  --layout clean --feature profile --dry-run
+
+# Create the clean layout
+python3 scripts/scaffold.py /absolute/path/to/my_app \
+  --layout clean --feature profile
 ```
 
 Use lowercase snake_case feature names, such as `login`, `user_profile`, or `order_history`. Repeat `--feature` for each feature.
@@ -175,29 +201,29 @@ The script does not run `flutter create` for you.
 ```text
 my_app/
 ├── lib/
-│   ├── core/
-│   │   ├── constant/
+│   ├── app/
 │   │   ├── di/
-│   │   ├── enums/
-│   │   ├── extension/
-│   │   ├── models/
-│   │   ├── network/
 │   │   ├── routing/
-│   │   ├── services/
-│   │   ├── shared/
-│   │   │   ├── bottom_sheets/
-│   │   │   ├── screens/
-│   │   │   ├── utils/
-│   │   │   └── widgets/
-│   │   ├── theme/
-│   │   └── utils/
+│   │   └── theme/
+│   ├── core/
+│   │   ├── network/
+│   │   ├── errors/
+│   │   ├── storage/
+│   │   └── widgets/
 │   └── features/
 │       └── <requested_feature>/
 │           ├── data/
-│           │   └── models/
-│           ├── cubit/
-│           └── ui/
-│               └── widgets/
+│           │   ├── models/
+│           │   ├── datasources/
+│           │   └── repositories/
+│           ├── presentation/
+│           │   ├── cubit/
+│           │   ├── screens/
+│           │   └── widgets/
+│           └── domain/           # clean mode only
+│               ├── entities/
+│               ├── repositories/
+│               └── usecases/
 └── assets/
     ├── pngs/
     ├── svgs/
@@ -207,25 +233,32 @@ my_app/
     └── sound/
 ```
 
-`<requested_feature>` is an illustration, not a literal folder. It appears only when you supply a feature name. Empty target folders contain `.gitkeep` files, omitted from the diagram for clarity.
+`<requested_feature>` is illustrative. No feature is created unless requested. Empty target folders receive `.gitkeep` files, omitted here for clarity.
 
 ### Where future code belongs
 
-| Location | Intended responsibility | Example file added later |
+| Location | Responsibility | Example file added later |
 | --- | --- | --- |
-| `core/di/` | Dependency registration | `inject.dart` |
-| `core/network/` | Shared HTTP client and API configuration | `dio_client.dart` |
-| `core/routing/` | Routes and route generation | `app_router.dart` |
-| `core/theme/` | Theme definitions and design tokens | `app_tokens.dart` |
-| `core/services/` | Shared infrastructure services | `secure_storage_service.dart` |
-| `core/shared/widgets/` | Reusable UI across features | `app_button.dart` |
-| `features/<name>/data/` | Feature repositories | `profile_repository.dart` |
-| `features/<name>/data/models/` | API and serialization models | `profile_model.dart` |
-| `features/<name>/cubit/` | Cubits and their state files | `profile_cubit.dart` |
-| `features/<name>/ui/` | Feature screens | `profile_screen.dart` |
-| `features/<name>/ui/widgets/` | Widgets specific to the feature | `profile_header.dart` |
+| `app/di/` | Application dependency registration | `inject.dart` |
+| `app/routing/` | Routes and route generation | `app_router.dart` |
+| `app/theme/` | Theme and design tokens | `app_tokens.dart` |
+| `core/network/` | Shared HTTP infrastructure | `dio_client.dart` |
+| `core/errors/` | Shared error types | `failure.dart` |
+| `core/storage/` | Shared storage adapters | `secure_storage.dart` |
+| `core/widgets/` | Reusable UI across features | `app_button.dart` |
+| `features/<name>/data/models/` | Serialization models | `profile_model.dart` |
+| `features/<name>/data/datasources/` | Remote and local data access | `profile_remote_source.dart` |
+| `features/<name>/data/repositories/` | Repository implementations | `profile_repository_impl.dart` |
+| `features/<name>/presentation/cubit/` | Cubits and state | `profile_cubit.dart` |
+| `features/<name>/presentation/screens/` | Screens | `profile_screen.dart` |
+| `features/<name>/presentation/widgets/` | Feature-specific UI | `profile_header.dart` |
+| `features/<name>/domain/entities/` | Pure Dart business entities (clean) | `profile.dart` |
+| `features/<name>/domain/repositories/` | Repository interfaces (clean) | `profile_repository.dart` |
+| `features/<name>/domain/usecases/` | Business rules and orchestration (clean) | `update_profile.dart` |
 
-These filenames describe future placement; the scaffold does not generate them. Keep feature-specific helpers inside their feature and reserve `core/` for shared concerns.
+These are placement examples, not generated files. In standard mode, repository contracts can live beside implementations in `data/repositories/`. Cubits depend on repository contracts, not data sources or HTTP clients.
+
+In clean mode, presentation and data depend on domain. Domain imports neither Flutter nor data/presentation. Use cases should contain meaningful rules or orchestration, rather than simply forwarding every repository call.
 
 ## Scope and behavior
 
@@ -237,7 +270,7 @@ These filenames describe future placement; the scaffold does not generate them. 
 - Does not register asset directories in Flutter; update `pubspec.yaml` when you add actual assets.
 - Does not reorganize an existing application into this layout.
 
-The layout is intended for a lightweight Cubit-based workflow. GetIt, Dio, and EasyLocalization are compatible choices, but none is installed or required by the scaffold. This template uses `data/cubit/ui`; it does not generate a separate domain layer.
+The default state folder is `presentation/cubit/`. No state management, HTTP, DI, or localization package is installed or required to scaffold folders.
 
 ## FAQ
 
@@ -263,7 +296,15 @@ Use lowercase snake_case without spaces, hyphens, slashes, or leading/trailing u
 
 ### Can I use another state management approach?
 
-The default layout creates `cubit/` folders. Adapt the template for your preferred approach before scaffolding; the script does not have a state management selection flag.
+The default layout creates `presentation/cubit/` folders. Adapt the template for your preferred approach before scaffolding; the script does not have a state management selection flag.
+
+### Can I upgrade a project created by the previous template?
+
+This release changes the layout from `data/cubit/ui` to `data/presentation` and moves application setup into `app/`. It is not an automatic migration. The script rejects requested features containing top-level `ui/` or `cubit/` directories. Review and migrate existing code separately; it does not detect every possible conflicting layout.
+
+### Can I switch between standard and clean?
+
+Running clean mode after standard mode adds domain folders. It does not move repository contracts or change Dart imports. Running standard mode afterward does not delete domain folders. Review the code boundaries yourself when changing architecture.
 
 ## Repository contents
 
@@ -274,7 +315,28 @@ tantawi-structure/
 │   └── openai.yaml         # Skill display name and example prompt
 ├── scripts/
 │   └── scaffold.py         # Standalone folder generator
+├── tests/
+│   └── test_scaffold.py     # Regression tests for the generator
 ├── .gitignore
 └── README.md
 ```
 
+## Run the checks
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+## Publish your own copy
+
+Create an empty GitHub repository named `tantawi-structure`. From this skill folder, replace `YOUR_USERNAME` and run:
+
+```bash
+git init -b main
+git add SKILL.md agents/openai.yaml scripts/scaffold.py tests README.md .gitignore
+git commit -m "Add Tantawi Structure skill"
+git remote add origin https://github.com/YOUR_USERNAME/tantawi-structure.git
+git push -u origin main
+```
+
+Publish this folder's contents only. Before sharing the repository, replace the `YOUR_USERNAME` placeholders in this README with your GitHub username so readers can copy the clone command directly.
