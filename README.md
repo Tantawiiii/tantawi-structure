@@ -326,17 +326,3 @@ tantawi-structure/
 ```bash
 python3 -m unittest discover -s tests -v
 ```
-
-## Publish your own copy
-
-Create an empty GitHub repository named `tantawi-structure`. From this skill folder, replace `YOUR_USERNAME` and run:
-
-```bash
-git init -b main
-git add SKILL.md agents/openai.yaml scripts/scaffold.py tests README.md .gitignore
-git commit -m "Add Tantawi Structure skill"
-git remote add origin https://github.com/YOUR_USERNAME/tantawi-structure.git
-git push -u origin main
-```
-
-Publish this folder's contents only. Before sharing the repository, replace the `YOUR_USERNAME` placeholders in this README with your GitHub username so readers can copy the clone command directly.
